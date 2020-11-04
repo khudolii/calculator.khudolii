@@ -21,12 +21,8 @@ public class Expression {
                 .collect(Collectors.joining());
         return collect.replaceAll("\\s+", "");
     }
-
-    public static void main(String[] args) throws IOException {
-        Expression expression = new Expression();
-        System.out.println(expression.getExpressionFromFile());
-    }
-
+    
+    /*Метод выполняет запись результата в результирующий файл*/
     public boolean writeResultToFile(double result) {
         try (FileWriter writer = new FileWriter("testData/output.txt", false)) {
             writer.write(String.valueOf(result));
