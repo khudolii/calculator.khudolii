@@ -141,7 +141,9 @@ public class ReversePolishNotationCalculator implements Calculator {
                 return 0;
         }
     }
-
+    /*
+    Метод проверяет корректность выражения. Проверки на то, что после открытой скобки должна быть закрытая, то что не может повторятся символ.
+    */
     private boolean isCorrectExpression() {
         char previousChar;
         char[] charArray = expression.toCharArray();
