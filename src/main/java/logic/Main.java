@@ -1,5 +1,8 @@
 package logic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         Main main = new Main();
@@ -7,17 +10,25 @@ public class Main {
     }
 
     private void run() {
-        Expression expression = new Expression();
-        String exp = expression.getExpressionFromFile();
-        ReversePolishNotationCalculator calculator = new ReversePolishNotationCalculator(exp);
-        double result;
-        try {
-            result = calculator.toCalculateExpression();
-        } catch (NullExpressionException e) {
-            System.err.println(e.toString());
-            result = 0;
+        Expression expressionFile = new Expression();
+        List<String> expressionsList = expressionFile.getExpressionFromFile();
+        List <String> resultsList = new ArrayList<>();
+        for (String expression : expressionsList){
+            ReversePolishNotationCalculator calculator = new ReversePolishNotationCalculator(expression);
+            String resultText = null;
+            try {
+                double res = calculator.toCalculateExpression();
+                resultText = String.valueOf(res);
+
+            } catch (Exception e) {
+                System.err.println(e.toString());
+                resultText = e.toString();
+            } finally {
+                resultsList.add(resultText);
+            }
+
         }
-        if (expression.writeResultToFile(result))
+        if (expressionFile.writeResultToFile(resultsList))
             System.out.println("The result is written to a file");
         else
             System.out.println("The result is  NOT written to a file");

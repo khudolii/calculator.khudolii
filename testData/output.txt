@@ -1,1 +1,8 @@
-23.0
+0.2
+logic.ExpressionException: To short expression!
+7.0
+logic.ExpressionException: Incorrect last symbol in expression - /
+logic.ExpressionException: To short expression!
+logic.ExpressionException: Cannot be divided by zero!
+logic.ExpressionException: Error! After * - *
+-1.0

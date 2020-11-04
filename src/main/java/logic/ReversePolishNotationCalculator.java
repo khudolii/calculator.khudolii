@@ -2,13 +2,18 @@ package logic;
 
 import java.util.EmptyStackException;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class ReversePolishNotationCalculator implements Calculator {
 
-    private final String expression;
+    private String expression;
 
     public ReversePolishNotationCalculator(String expression) {
-        this.expression = expression;
+        expression = expression.chars()
+                .filter(c -> !Character.isLetter(c))
+                .mapToObj(c -> String.valueOf((char) c))
+                .collect(Collectors.joining());
+        this.expression = expression.replaceAll("\\\\", "").replaceAll("\\s+", "");
     }
 
     /*
@@ -24,7 +29,11 @@ public class ReversePolishNotationCalculator implements Calculator {
         Stack<Character> stack = new Stack<>();
         StringBuilder rpnExpression = new StringBuilder();
         int currentSymbolPriority = 0;
-        for (char c : expression.toCharArray()) {
+        char[] charArray = expression.toCharArray();
+        for (int i = 0; i < charArray.length; i++) {
+            char c = charArray[i];
+            if (i == 0 & (c == '+' | c == '-'))
+                continue;
             currentSymbolPriority = getPriority(c);
             if (currentSymbolPriority == 0) {
                 rpnExpression.append(c);
@@ -57,7 +66,7 @@ public class ReversePolishNotationCalculator implements Calculator {
     /*Данный метод возвращает результат вычисления выражения. В стек добавляются числа по очереди по принципу: предыдущие числа плюс текущее число.
     Если текущий символ попадает на арифметический знак то берем два последних символа с стека и выполняем эту операцию над ними, результат помещаем в стек.
     * */
-    private double getResult(String rpnExpression) throws EmptyStackException {
+    private double getResult(String rpnExpression) throws EmptyStackException, ArithmeticException, ExpressionException {
         StringBuilder operand = new StringBuilder();
         Stack<Double> stack = new Stack<>();
         char[] charArray = rpnExpression.toCharArray();
@@ -88,12 +97,7 @@ public class ReversePolishNotationCalculator implements Calculator {
                         result = multiply(a, b);
                         break;
                     case '/': {
-                        try {
-                            result = divide(a, b);
-                        } catch (ArithmeticException e) {
-                            System.err.println(e.toString());
-                            return 0;
-                        }
+                        result = divide(a, b);
                     }
                 }
                 stack.push(result);
@@ -110,7 +114,7 @@ public class ReversePolishNotationCalculator implements Calculator {
 
     public double subtract(double a, double b) {
         System.out.println(a + " - " + b);
-        return a - b;
+        return b - a;
     }
 
     public double multiply(double a, double b) {
@@ -118,11 +122,11 @@ public class ReversePolishNotationCalculator implements Calculator {
         return a * b;
     }
 
-    public double divide(double a, double b) throws ArithmeticException {
-        System.out.println(a + " / " + b);
-        if (b == 0)
-            throw new ArithmeticException("b=0");
-        return a / b;
+    public double divide(double a, double b) throws ExpressionException {
+        System.out.println(b + " / " + a);
+        if (a == 0)
+            throw new ExpressionException("Cannot be divided by zero!");
+        return b / a;
     }
 
     private int getPriority(char symbol) {
@@ -142,8 +146,12 @@ public class ReversePolishNotationCalculator implements Calculator {
         }
     }
 
-    private boolean isCorrectExpression() {
-        char previousChar;
+    private boolean isCorrectExpression() throws ExpressionException {
+        if (expression.length() <= 2) {
+            throw new ExpressionException("To short expression!");
+        }
+        if (getPriority(expression.charAt(expression.length() - 1)) > 1)
+            throw new ExpressionException("Incorrect last symbol in expression - " + expression.charAt(expression.length() - 1));
         char[] charArray = expression.toCharArray();
         for (int i = 0, charArrayLength = charArray.length; i < charArrayLength; i++) {
             char c = charArray[i];
@@ -156,31 +164,35 @@ public class ReversePolishNotationCalculator implements Calculator {
                     if (getPriority(charArray[elementNum]) != -1) //Если элемент не ), идем дальше
                         elementNum++;
                     else if (getPriority(charArray[elementNum]) == 1) { //Если элемент снова ( - это ошибка, вовзращаем false
-                        System.err.println("Double '('");
-                        break;
+                        throw new ExpressionException("Double '('");
                     } else if (getPriority(charArray[elementNum]) == -1) { //Если элемент ) то заканчиваем цикл
                         result = true;
                         break;
                     }
                 }
                 if (!result) {
-                    System.err.println("No such )");
-                    return false;
+                    throw new ExpressionException("No such ')'");
                 }
             }
             if (getPriority(c) == 2 || getPriority(c) == 3) {
                 if (getPriority(charArray[i + 1]) > 1 || getPriority(charArray[i + 1]) < 0) {
-                    System.err.println("Error! After " + c + " - " + charArray[i + 1]);
-                    return false;
+                    throw new ExpressionException("Error! After " + c + " - " + charArray[i + 1]);
                 }
             }
         }
         return true;
     }
 
-    public double toCalculateExpression() throws NullExpressionException {
+   /* private String changeExpressionToCorrect (){
+
+        return this.expression;
+    }*/
+
+    public double toCalculateExpression() throws ExpressionException, ArithmeticException {
+        // changeExpressionToCorrect();
+        System.out.println(expression);
         if (expression == null || expression.equals(""))
-            throw new NullExpressionException("Expression is null! Calculate impossible.");
+            throw new ExpressionException("Expression is null! Calculate impossible.");
         if (!isCorrectExpression())
             return 0;
         else {
